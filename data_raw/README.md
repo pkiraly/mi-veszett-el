@@ -1,0 +1,1 @@
+Ebben a könyvtárban nyers adatok vannak, amik nem képezik részét a nyilvános repozitóriumnak.

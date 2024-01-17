@@ -1,0 +1,3 @@
+Az itteni scriptek az eRMK CD-ből generált HTML állományokat dolgozzák fel:
+- kiszűrik a fontos adatelemeket
+- létrehoznak egy CSV állományt
