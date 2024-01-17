@@ -4,19 +4,20 @@ $references = implode('|', [
   'RMK', 'Caplovic', 'Sztripszky', 'VD17', 'MKsz', 'ItK', 'Gross: Kronstädter', 'Nägler', 'Knihopis', 'OSzKÉvk',
   'Seethaler', 'Stúdió Antikvárium', 'KorblVerSiebLkde', 'Knapp: Pietás', 'Borda antikvárium', 'A kolozsvári Akadémiai Könyvtár',
   'Nyelv- és Irodalomtudományi Közlemények', 'Hírnök \(Kolozsvár\)', 'ArchVerSiebLkde', 'Gesta typographorum.', 'Takács',
-  'Korrespondenzblatt', 'Emlékkönyv']);
+  'Korrespondenzblatt', 'Emlékkönyv', 'AkÉrt', 'Apponyi: Hungarica', 'Ave Tyrnavia!', 'Avram', 'Nágler', 'Nagler',
+  'Gross: Kronstadter', 'Gross: Kronstádter', 'A Fővárosi Szabó Ervin Könyvtár Évkönyve', 'ErdMuz', 'V. Ecsedy: Hung. typ.',
+  'Németh S. Katalin:', 'RMK-Katalógusa.', 'Régi Magyar Könyvtár-gyűjteményeinek katalógusa.', 'Glósz Miksa:',
+  'Valori bibliofile din patrimoniul cultural naponal.']);
 
-$file = '/home/pkiraly/Documents/mi-veszett-el/RMNY-04_v05.txt';
-
+$file = $argv[1];
 $lines = file($file);
 
 $prev = '';
 $record = [];
-$lineCount = 0;
 foreach ($lines as $line_num => $line) {
   $line = str_replace(array("\n", "\r"), '', $line);
-  if (preg_match('/^(Appendix )?(\d+)(.*?)$/', $line, $matches)) {
-    if (!empty($matches[3]) && $matches[3] != 'A') {
+  if (preg_match('/^(Appendix )?(\d+)([AB])?$/', $line, $matches)) {
+    if (!empty($matches[3]) && !in_array($matches[3], ['A', 'B'])) {
       echo $prev, LN;
       echo urlencode($matches[3]);
       print_r($matches);
@@ -34,20 +35,24 @@ foreach ($lines as $line_num => $line) {
     ];
     // echo $record->id, ', ', (int) $record->appendix, LN;
   } else if (preg_match('/^[^ ]/', $line)) {
-    if ($record->lineCount == 1) {
-      $record->title = $line;
-      $chr = mb_substr($line, 0, 1);
-      if ($chr == '»') {
-        $record->externalData = true;
-      } else if ($chr == '<') {
-        $record->hypothetic = true;
-      }
-      // echo $record->id, ': ', $chr, LN;
+    if (preg_match('/(Vide|Appendix) \d+[AB]?(\(\d\)|, \d+)?$/', $line)) {
+      $record->isReference = true;
     } else {
-      echo 'wrong title line: ', $line, LN;
+      if ($record->lineCount == 1) {
+        $record->title = $line;
+        $chr = mb_substr($line, 0, 1);
+        if ($chr == '»') {
+          $record->externalData = true;
+        } else if ($chr == '<') {
+          $record->hypothetic = true;
+        }
+        // echo $record->id, ': ', $chr, LN;
+      } else {
+        echo 'wrong title line: ', $line, LN;
+      }
+      $record->lineCount++;
     }
-    $record->lineCount++;
-  } else if (preg_match('/^     (.*)$/', $line, $matches)) {
+  } else if (preg_match('/^   (.*)$/', $line, $matches)) {
     $line = $matches[1];
     if (!$record->externalData && !$record->hypothetic && !$record->appendix) {
       if ($record->lineCount == 2) {
@@ -55,8 +60,10 @@ foreach ($lines as $line_num => $line) {
       } else if ($record->lineCount == 3) {
         if (preg_match('/('. $references . ') /', $line))
           $record->references = $line;
-        else
+        else {
+          echo $line, LN;
           $record->genre = $line;
+        }
       } else
         $record->lines[] = $line;
     } else {
@@ -83,7 +90,7 @@ function processRecord($record) {
         if ($lineCount > 1)
           $collections = $record->lines[$lineCount - 2];
       }
-      echo $record->id, ': ', $collections, LN;
+      // echo $record->id, ': ', $collections, LN;
     }
   }
 }
