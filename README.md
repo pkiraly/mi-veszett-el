@@ -1,6 +1,6 @@
 # Mennyi nyom nélkül eltűnt régi magyar nyomtatvány lehet?
 
-## Káldos János, Farkas Gábor Farkas és Király Péter kutatása
+## Farkas Gábor Farkas, Káldos János és Király Péter kutatása
 
 A művelődéstörténet, a könyvtörténet, a bibliográfia és könyvtári katalógus határterületén járunk. A könyvtáros azokkal az objektumokkal foglalkozik, amelyek az általa kezelt gyűjteményben vannak. A bibliográfus az egyre táguló, növekvő Gutenberg-galaxis valamely idő és térbeli metszetét vizsgálja. A könyvtörténész pedig szélesebb gazdasági, társadalmi összefüggések között vizsgálja a 'könyv' jelenséget. Mindegyik terület jelentős felismerésekkel és adattárakkal gazdagította ismereteinket arról, hogy milyen is volt a kora újkori magyar könyves kultúra és abból mi maradt ránk, az utókorra. Célunk, hogy Arnold Esch alapkérdését – hogyan viszonyul a történelmi gondolkozás és kutatás nemcsak a fennmaradt dokumentumokhoz és forrásokhoz, hanem az egykor létezők összességéhez – a 15-17. századi magyar nyomtatványok számbavételének eddigi eredményeire alkalmazzuk.
 
