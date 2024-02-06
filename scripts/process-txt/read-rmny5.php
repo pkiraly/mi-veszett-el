@@ -1,5 +1,9 @@
 <?php
+
+include_once 'functions.php';
 const LN = "\n";
+const PHYSICAL_DESCRIPTION_SEPARATOR = ' – ';
+
 $references = implode('|', [
   'RMK', 'Caplovic', 'Čaplovič', 'Sztripszky', 'VD17', 'MKsz', 'ItK', 'Gross: Kronstädter', 'Nägler', 'Knihopis', 'OSzKÉvk',
   'Seethaler', 'Stúdió Antikvárium', 'KorblVerSiebLkde', 'Knapp: Pietás', 'Borda antikvárium', 'A kolozsvári Akadémiai Könyvtár',
@@ -19,7 +23,9 @@ $missing_size = ['3938', '3961', '4173', '4176', '4240', '4469', '4570'];
 
 $file = $argv[1];
 $lines = file($file);
-$locations = processLocations($file);
+$impressums = processImpressums($file);
+$csv = fopen('rmny5.csv', 'w');
+csvHeader($csv);
 
 $prev = '';
 $record = [];
@@ -100,7 +106,8 @@ foreach ($lines as $line_num => $line) {
 }
 
 function processRecord($record) {
-  global $locations;
+  global $impressums;
+
   if (!isset($record->id)) {
     return;
   }
@@ -128,104 +135,7 @@ function processRecord($record) {
       }
     }
   }
-  if (isset($record->physicalDescription)) {
-    processPhysicalDescription($record);
-  }
-  if (isset($locations[$record->id])) {
-    $location = $locations[$record->id];
-    unset($location->id);
-    $record->location = $location;
-  } else {
-    echo $record->id, LN;
-  }
-  unset($record->lines);
-  unset($record->lineCount);
-  echo json_encode($record,  JSON_UNESCAPED_UNICODE), LN;
+  finalizeRecord($record, $impressums);
 }
 
-function processPhysicalDescription($record) {
-  global $missing_size;
 
-  $parts = explode(' – ', $record->physicalDescription);
-  if (count($parts) == 1) {
-    $record->folios = $parts[0];
-  } else if (count($parts) == 2) {
-    $record->folios = $parts[0];
-    if (in_array($record->id, $missing_size))
-      $record->illustration = $parts[1];
-    else
-      $record->size = $parts[1];
-    if (isset($record->size)) {
-      if (preg_match('/Init/', $record->size))
-        error_log('error: ' . $record->id . ': ' . $record->physicalDescription);
-    }
-  } else if (count($parts) == 3) {
-    $record->folios = $parts[0];
-    // if (in_array($record->id, $missing_size))
-    //  $record->illustration = $parts[1];
-    //else
-    $record->size = $parts[1];
-    $record->illustration = $parts[2];
-    if (isset($record->size)) {
-      if (preg_match('/init/', $record->size))
-        error_log('error: ' . $record->id . ': ' . $record->physicalDescription);
-    }
-  }
-
-  if (isset($record->illustration)) {
-    error_log($record->illustration);
-    // if (preg_match('/°/', $record->illustration))
-    //   error_log('error: ' . $record->id . ': ' . $record->physicalDescription);
-  }
-}
-
-function processLocations($bibliographicFile) {
-  $locationsFile = sprintf('data_raw/nyomda%d.txt', preg_match('/-04/', $bibliographicFile) ? 4 : 5);
-  $lines = file($locationsFile);
-  $place = '';
-  $printer = '';
-  $locations = [];
-  foreach ($lines as $lineNum => $line) {
-    $line = str_replace(array("\n", "\r"), '', $line);
-    if ($line == '') {
-      $place = '';
-    } else {
-      if ($place == '') {
-        $record = (object)['location' => cleanLocation($line), 'printer' => ''];
-        $place = $line;
-      } else if (preg_match('/^(\d{4}): (.*)/', $line, $matches)) {
-        // print_r($matches);
-        $year = $matches[1];
-        $refs = $matches[2];
-        while (preg_match('/(\([^),]+),/', $refs))
-          $refs = preg_replace('/(\([^),]+),/', "$1;", $refs);
-        $items = explode(', ', $refs);
-        foreach ($items as $item) {
-          if (preg_match('/^(\d+[AB]?)( .*)?$/', $item, $matches)) {
-            if (!isset($record->printer))
-              echo 'no printer: ', $lineNum, ' - ', $line, LN;
-            $rec = (object)[
-              'id' => $matches[1],
-              'year' => $year,
-              'location' => $record->location,
-              'printer' => $record->printer,
-            ];
-            if (!empty($matches[2]))
-              $rec->alt = $matches[2];
-            $locations[$rec->id] = $rec;
-          } else {
-            echo 'not match: ', $item, LN;
-          }
-        }
-      } else {
-        $record->printer = $line;
-      }
-    }
-  }
-  ksort($locations);
-  return $locations;
-}
-
-function cleanLocation($text) {
-  return preg_replace('/ \(.*?\)$/', '', $text);
-}
