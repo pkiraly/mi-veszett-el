@@ -13,7 +13,10 @@ $references = implode('|', [
   'Németh S. Katalin:', 'RMK-Katalógusa.', 'Régi Magyar Könyvtár-gyűjteményeinek katalógusa.', 'Glósz Miksa:',
   'Valori bibliofile din patrimoniul cultural naponal.']);
 
+$missing_refs = [];
 $missing_size = ['2652', '2680', '2692', '2702', '2743', "2773", '2925', '2950', '3027', '3336', '3394'];
+$missing_locations = ['2758', '3564'];
+$cities = [];
 
 $file = $argv[1];
 $lines = file($file);
@@ -86,24 +89,30 @@ foreach ($lines as $line_num => $line) {
 
 function processRecord($record) {
   global $impressums;
-  if (!$record->externalData && !$record->hypothetic && !$record->appendix) {
-    $lineCount = count($record->lines);
-    if ($lineCount == 0) {
-      // print_r($record);
-    } else {
-      // echo $lineCount, LN;
-      $collections = $record->lines[$lineCount - 1];
-      if ($collections == 'Editio facsimile')
-        $collections = $record->lines[$lineCount - 2];
-      else if (preg_match('/^Olim: /', $collections)) {
-        $record->olim = $collections;
-        if ($lineCount > 1)
-          $collections = $record->lines[$lineCount - 2];
-      }
-      $record->collections = $collections;
-      // echo $record->id, ': ', $collections, LN;
-    }
-  }
+
+  extractLocations($record);
   finalizeRecord($record, $impressums);
 }
 
+
+/*
+2758: nincs locations, sem »
+impressum error: 2962 is already registered
+impressum error: 2636 is already registered
+impressum error: 2760 is already registered
+impressum error: 2760 is already registered
+impressum error: 3633 is already registered
+impressum error: 3421 is already registered
+impressum error: 3514 is already registered
+impressum error: 3515 is already registered
+impressum error: 3520 is already registered
+impressum error: 3436 is already registered
+impressum error: 3436 is already registered
+impressum error: 3216 is already registered
+impressum error: 3173 is already registered
+impressum error: 3683 is already registered
+impressum error: 3180 is already registered
+impressum error: 3542 is already registered
+impressum error: 2957 is already registered
+impressum error: 3187 is already registered
+ */

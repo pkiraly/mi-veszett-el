@@ -23,11 +23,16 @@ function finalizeRecord($record, array $impressums) {
   $cells = [
     $record->id, $record->externalData, $record->hypothetic, $record->appendix, $record->title,
     ($record->collections ?? ''),
+    $record->collectionCount,
+    ($record->olim ?? ''),
+    $record->olimCount,
+    ($record->facsimile ?? false),
     ($record->kollacio ?? ''), ($record->terjedelem ?? ''), ($record->formatum ?? ''), ($record->konyvdisz ?? ''),
     ($record->references ?? ''), ($record->genre ?? ''),
     (isset($record->impressum) ? $record->impressum->year : ''),
     (isset($record->impressum) ? $record->impressum->location : ''),
-    (isset($record->impressum) ? $record->impressum->printer : '')
+    (isset($record->impressum) ? $record->impressum->printer : ''),
+    ($record->cities ?? ''),
   ];
   fputcsv($csv, $cells);
 
@@ -37,10 +42,11 @@ function finalizeRecord($record, array $impressums) {
 function csvHeader($csv) {
   $cells = [
     '01Sorszám', 'externalData', 'hypothetic', 'appendix', '03Cím',
-    'collections',
+    'collections', 'collectionCount', 'olim', 'olimCount', 'facsimile',
     '07Kolláció', '08Terjedelem', '09Formátum', '10Könyvdísz',
     '11Forrás', '12Tárgy',
-    '01xIdö', '01xHely', '06xNyomda'
+    '01xIdö', '01xHely', '06xNyomda',
+    'cities'
   ];
 
   fputcsv($csv, $cells);
@@ -155,4 +161,90 @@ function processImpressums($bibliographicFile): array {
   }
   ksort($impressums);
   return $impressums;
+}
+
+/**
+ * @param $record
+ * @param $matches
+ * @return mixed
+ */
+function extractLocations($record) {
+  global $missing_locations, $cities;
+
+  $record->facsimile = false;
+  $record->olim = '';
+  $record->olimCount = 0;
+  $record->collections = '';
+  $record->collectionCount = 0;
+  if (!$record->externalData && !$record->hypothetic && !$record->appendix) {
+    $lineCount = count($record->lines);
+    if ($lineCount == 0) {
+      if ($record->title != 'Vacat!')
+        print_r($record);
+    } else {
+      $collections = array_pop($record->lines);
+      if ($collections == 'Editio facsimile') {
+        $collections = array_pop($record->lines);
+        $record->facsimile = true;
+      }
+
+      if (preg_match('/^Olim: (.*?)$/', $collections, $matches)) {
+        $record->olim = $matches[1];
+        $record->olimCount = count(explode(' - ', $record->olim));
+        $collections = array_pop($record->lines);
+      }
+      if (!in_array($record->id, $missing_locations)) {
+        $record->collections = $collections;
+        $record->collections = preg_replace('/^Gyûjteményben: /', '', $record->collections);
+
+        $collections = explode(' - ', $record->collections);
+        if (preg_match('/In (\d+) bibliothecis (\d+) expl./', $collections[0], $matches)) {
+          $record->libraryCount = $matches[1];
+          $record->collectionCount = $matches[2];
+        } else {
+          $record->collectionCount = count($collections);
+          $count = 0;
+          $cities = [];
+          foreach ($collections as $collection) {
+            $collection = preg_replace('/^\([12\-]+\): /', '', $collection);
+            if (preg_match('/^(Dolný Kubín|Alba Iulia|Târgu Mureş|Valasské Mezirící|Liptovský Mikuláš|Niznij Novgorod|Odorheiu Secuiesc|Satu Mare|Sfántu Gheorghe|Spišská Nová Ves|[^ ]+) (.*)/', $collection, $matches)) {
+              $city = $matches[1];
+              if (!in_array($city, $cities))
+                $cities[] = $city;
+              $libraries = $matches[2];
+              $libraries = preg_replace('/ \([^()]+\)/', '', $libraries);
+              $libraries = preg_replace('/ \[[\d\-]+\]/', '', $libraries);
+              $libraries = preg_replace('/(\d)\*/', "$1", $libraries);
+              if (preg_match('/ (cop\. partim|cop\.|cop\. \d)$/', $libraries))
+                continue;
+
+              if (preg_match('/(Lugossy József)/', $libraries))
+                error_log('ERROR @' . $record->id . ': ' . $record->collections . ' --> "' . $libraries . '"');
+
+              if (preg_match('/(( \d)+)$/', $libraries, $matches)) {
+                $numbers = $matches[1];
+                // error_log($numbers . ' -> ' . strlen($numbers) / 2);
+                $count += strlen($numbers) / 2;
+              } else {
+                $count++;
+              }
+              /*
+              if ($city == 'Bp.')
+                error_log($record->id . ': ' . $record->collections);
+              if (!isset($cities[$city])) {
+                error_log($city);
+                $cities[$city] = 0;
+              }
+              $cities[$city]++;
+              */
+            }
+            // error_log($collection);
+          }
+          $record->collectionCount = $count;
+          error_log($record->collections . ' --> ' . $record->collectionCount);
+          $record->cities = implode(", ", $cities);
+        }
+      }
+    }
+  }
 }

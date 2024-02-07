@@ -20,6 +20,7 @@ $missing_refs = [
   '4330A', '4333', '4340', '4350', '4355', '4392', '4414A', '4434', '4453', '4511', '4539', '4544', '4553', '4570'];
 
 $missing_size = ['3938', '3961', '4173', '4176', '4240', '4469', '4570'];
+$missing_locations = [];
 
 $file = $argv[1];
 $lines = file($file);
@@ -108,34 +109,13 @@ foreach ($lines as $line_num => $line) {
 function processRecord($record) {
   global $impressums;
 
-  if (!isset($record->id)) {
-    return;
+
+  $parts = explode(' – ', $record->lines[0], 2);
+  if (count($parts) == 2) {
+    $record->genre = $parts[0];
+  } else {
+    error_log('missing - : ' . $record->lines[0]);
   }
-  if (!$record->externalData && !$record->hypothetic && !$record->appendix) {
-    $lineCount = count($record->lines);
-    if ($lineCount == 0) {
-      // print_r($record);
-    } else {
-      // echo $lineCount, LN;
-      $collections = $record->lines[$lineCount - 1];
-      if ($collections == 'Editio facsimile')
-        $collections = $record->lines[$lineCount - 2];
-      else if (preg_match('/^Olim: /', $collections)) {
-        $record->olim = $collections;
-        if ($lineCount > 1)
-          $collections = $record->lines[$lineCount - 2];
-      }
-      $record->collections = $collections;
-      // echo $record->id, ': ', $collections, LN;
-      $parts = explode(' – ', $record->lines[0], 2);
-      if (count($parts) == 2) {
-        $record->genre = $parts[0];
-      } else {
-        error_log('missing - : ' . $record->lines[0]);
-      }
-    }
-  }
+  extractLocations($record);
   finalizeRecord($record, $impressums);
 }
-
-
