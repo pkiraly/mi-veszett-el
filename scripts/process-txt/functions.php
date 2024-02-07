@@ -209,8 +209,9 @@ function extractLocations($record) {
             $collection = preg_replace('/^\([12\-]+\): /', '', $collection);
             if (preg_match('/^(Dolný Kubín|Alba Iulia|Târgu Mureş|Valasské Mezirící|Liptovský Mikuláš|Niznij Novgorod|Odorheiu Secuiesc|Satu Mare|Sfántu Gheorghe|Spišská Nová Ves|[^ ]+) (.*)/', $collection, $matches)) {
               $city = $matches[1];
-              if (!in_array($city, $cities))
-                $cities[] = $city;
+              if (!isset($cities[$city]))
+                $cities[$city] = 0;
+              $cities[$city]++;
               $libraries = $matches[2];
               $libraries = preg_replace('/ \([^()]+\)/', '', $libraries);
               $libraries = preg_replace('/ \[[\d\-]+\]/', '', $libraries);
@@ -241,8 +242,10 @@ function extractLocations($record) {
             // error_log($collection);
           }
           $record->collectionCount = $count;
-          error_log($record->collections . ' --> ' . $record->collectionCount);
-          $record->cities = implode(", ", $cities);
+          $formattedCities = [];
+          foreach ($cities as $city => $count)
+            $formattedCities[] = $city . '=' . $count;
+          $record->cities = implode(", ", $formattedCities);
         }
       }
     }
