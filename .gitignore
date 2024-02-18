@@ -1,2 +1,6 @@
 data_raw/*.txt
 .Rproj.user
+.RData
+.Rhistory
+.idea/
+vendor/

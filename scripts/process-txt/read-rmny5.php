@@ -12,7 +12,8 @@ $references = implode('|', [
   'Gross: Kronstadter', 'Gross: Kronstádter', 'A Fővárosi Szabó Ervin Könyvtár Évkönyve', 'ErdMuz', 'V. Ecsedy: Hung. typ.',
   'Németh S. Katalin:', 'RMK-Katalógusa.', 'Régi Magyar Könyvtár-gyűjteményeinek katalógusa.', 'Glósz Miksa:',
   'Valori bibliofile din patrimoniul cultural', 'A Központi Antikvárium 150. aukciója.',
-  'A Tiszántúli Református Egyházkerületi Nagykönyvtár RMK-katalógusa.', 'RMK II', 'A csíksomlyói ferences nyomda']);
+  'A Tiszántúli Református Egyházkerületi Nagykönyvtár RMK-katalógusa.', 'RMK II', 'A csíksomlyói ferences nyomda',
+  'Szabó: Brichenzweig']);
 
 $missing_refs = [
   '3766', '3811', '3852', '3854', '3862', '3864', '3866', '3879', '3881A', '3901', '3930', '3940', '3946A', '3954',
@@ -20,7 +21,10 @@ $missing_refs = [
   '4330A', '4333', '4340', '4350', '4355', '4392', '4414A', '4434', '4453', '4511', '4539', '4544', '4553', '4570'];
 
 $missing_size = ['3938', '3961', '4173', '4176', '4240', '4469', '4570'];
-$missing_locations = [];
+$missing_locations = ['4071', '4510', '4229'];
+$olimToLocation = initOlimToLocation();
+$olims = [];
+$debug = false;
 
 $file = $argv[1];
 $lines = file($file);
@@ -52,6 +56,7 @@ foreach ($lines as $line_num => $line) {
       'lineCount' => 1,
       'externalData' => false,
       'hypothetic' => false,
+      'isReference' => false,
       'appendix' => !empty($matches[1]),
       'lines' => []
     ];
@@ -106,16 +111,49 @@ foreach ($lines as $line_num => $line) {
   }
 }
 
+printOlims();
+
 function processRecord($record) {
   global $impressums;
 
-
-  $parts = explode(' – ', $record->lines[0], 2);
-  if (count($parts) == 2) {
-    $record->genre = $parts[0];
-  } else {
-    error_log('missing - : ' . $record->lines[0]);
+  if (!$record->isReference && $record->title != 'Vacat!' && !$record->appendix && !$record->externalData && !$record->hypothetic) {
+    if (isset($record->lines) && !empty($record->lines)) {
+      $parts = explode(' – ', $record->lines[0], 2);
+      if (count($parts) == 2) {
+        $record->genre = $parts[0];
+      } else {
+        error_log('missing - to separate genre in line: ' . $record->lines[0]);
+      }
+    } else {
+      error_log('missing lines: ' . json_encode($record));
+    }
   }
   extractLocations($record);
   finalizeRecord($record, $impressums);
 }
+
+/*
+impressum error: 4562 is already registered
+impressum error: 3780 is already registered
+impressum error: 3712 is already registered
+impressum error: 3720 is already registered
+impressum error: 3790 is already registered
+impressum error: 3792 is already registered
+impressum error: 3799 is already registered
+impressum error: 3904 is already registered
+impressum error: 4091 is already registered
+impressum error: 4091 is already registered
+impressum error: 4620 is already registered
+impressum error: 3994 is already registered
+impressum error: 4163 is already registered
+impressum error: 4105 is already registered
+impressum error: 4502 is already registered
+impressum error: 3942 is already registered
+impressum error: 3866 is already registered
+impressum error: 4115 is already registered
+impressum error: 4175 is already registered
+
+strange library list: 4298
+4372: Eisenstadt Esterházy 64 expl.
+
+ */

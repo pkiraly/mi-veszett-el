@@ -17,6 +17,9 @@ $missing_refs = [];
 $missing_size = ['2652', '2680', '2692', '2702', '2743', "2773", '2925', '2950', '3027', '3336', '3394'];
 $missing_locations = ['2758', '3564'];
 $cities = [];
+$olimToLocation = initOlimToLocation();
+$olims = [];
+$debug = false;
 
 $file = $argv[1];
 $lines = file($file);
@@ -42,8 +45,10 @@ foreach ($lines as $line_num => $line) {
       'lineCount' => 1,
       'externalData' => false,
       'hypothetic' => false,
+      'isReference' => false,
       'appendix' => !empty($matches[1]),
-      'lines' => []
+      'lines' => [],
+      'genre' => '',
     ];
     // echo $record->id, ', ', (int) $record->appendix, LN;
   } else if (preg_match('/^[^ ]/', $line)) {
@@ -76,8 +81,13 @@ foreach ($lines as $line_num => $line) {
           // echo $line, LN;
           $record->genre = $line;
         }
-      } else
-        $record->lines[] = $line;
+      } else {
+        if ($record->genre == '') {
+          $record->genre = $line;
+        } else {
+          $record->lines[] = $line;
+        }
+      }
     } else {
       $record->lines[] = $line;
     }
@@ -86,6 +96,7 @@ foreach ($lines as $line_num => $line) {
     echo 'other line: ', $record->id, ": '$line'", LN;
   }
 }
+printOlims();
 
 function processRecord($record) {
   global $impressums;
