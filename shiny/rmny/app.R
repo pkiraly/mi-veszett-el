@@ -1,5 +1,6 @@
 library(shiny)
 library(tidyverse)
+library(scatterpie)
 
 foreign_cities <- c(
   'Velence', 'Amszterdam', 'Frankfurt am Main', 'Bázel', 'Lyon', 'Krakkó',
@@ -8,6 +9,8 @@ foreign_cities <- c(
   'London', 'Bologna', 'Zürich', 'Herborn', 'Franeker', 'Tübingen', 'Gdansk',
   'Párizs', 'Ulm', 'Lipcse', 'Wroclaw', 'Olmütz', 'Strassburg', 'Hanau',
   'Amsterdam', 'Antwerpen', 'Brüsszel', 'Königsberg')
+selected_countries <- c('Hungary', 'Slovakia', 'Romania', 'Austria', 'Slovenia', 'Croatia', 'Serbia')
+
 df <- read_tsv('data/rmny-1-5.tsv')
 year_min <- min(df$x_nyomtatasi_ev)
 year_max <- max(df$x_nyomtatasi_ev)
@@ -53,6 +56,24 @@ ui <- navbarPage(
         column(
           9, 
           plotOutput("tab2_ivszam", height = 600)
+        )
+      )
+    )
+  ),
+  tabPanel(
+    "Fennmaradás aránya",
+    fluidPage(
+      fluidRow(
+        column(
+          3,
+          sliderInput("tab3_ev", label = "nyomtatás éve", min = year_min, max = year_max,
+                      value = c(year_min, year_max),
+                      step = 1, width = '100%'),
+          radioButtons("tab3_country", label = "mai ország", choices = c('mind', selected_countries)),
+        ),
+        column(
+          9, 
+          plotOutput("tab3_map", height = 600)
         )
       )
     )
@@ -187,7 +208,6 @@ server <- function(input, output, session) {
     
     print(sprintf("visualization: %s", visualization))
     
-    df <- read_tsv('data/rmny-1-5.tsv')
     df2 <- df %>% 
       select(x_nyomtatasi_ev, x_nyomtatasi_hely, ivszam) %>% 
       filter(!is.na(x_nyomtatasi_hely)) %>% 
@@ -310,6 +330,161 @@ server <- function(input, output, session) {
     }
     
     img
+  })
+  
+  output$tab3_map <- renderPlot({
+    min_year <- input$tab3_ev[1]
+    max_year <- input$tab3_ev[2]
+    selected_country <- input$tab3_country
+    if (selected_country == 'mind') {
+      selected_country <- selected_countries
+    }
+
+    coords <- read_csv('data/coord.csv')
+    coords_hu <- read_csv('data/coord.hu.csv')
+    synonyms <- read_csv('data/place-synonyms-normalized.csv')
+    
+    df2 <- df %>% 
+      select(id, x_nyomtatasi_ev, x_nyomtatasi_hely, x_letezo_peldanyok_szorodasa, x_letezett_peldanyok_szorodasa) %>% 
+      filter(x_nyomtatasi_ev >= min_year & x_nyomtatasi_ev <= max_year)
+
+    libraries <- df2 %>%
+      select(id, x_letezo_peldanyok_szorodasa) %>% 
+      rename(current = x_letezo_peldanyok_szorodasa) %>% 
+      filter(!is.na(current)) %>% 
+      separate_longer_delim(current, ", ") %>% 
+      separate(current, c('current', 'count'), '=') %>% 
+      left_join(synonyms, by = c("current" = "original")) %>% 
+      select(-factor) %>% 
+      mutate(current = ifelse(is.na(normalized), current, normalized)) %>% 
+      select(-normalized)
+    # print(head(libraries))
+    
+    olim <- df2 %>%
+      select(id, x_letezett_peldanyok_szorodasa) %>% 
+      rename(olim = x_letezett_peldanyok_szorodasa) %>% 
+      filter(!is.na(olim)) %>% 
+      separate_longer_delim(olim, ", ") %>% 
+      left_join(synonyms, by = c("olim" = "original")) %>% 
+      select(-factor) %>% 
+      mutate(olim = ifelse(is.na(normalized), olim, normalized)) %>% 
+      select(-normalized)
+    # print(head(olim))
+    
+    pub_normalized <- df2 %>% 
+      select(id, x_nyomtatasi_hely) %>% 
+      left_join(synonyms, by = c("x_nyomtatasi_hely" = "original")) %>% 
+      select(-factor) %>% 
+      mutate(x_nyomtatasi_hely = ifelse(is.na(normalized), x_nyomtatasi_hely, normalized)) %>% 
+      select(-normalized)
+    # print(head(pub_normalized))
+    
+    local <- pub_normalized %>% 
+      full_join(libraries, join_by(id)) %>% 
+      mutate(same = x_nyomtatasi_hely == current)
+    # print(head(local))
+    
+    locally_saved <- local %>% 
+      filter(same == TRUE) %>% 
+      group_by(x_nyomtatasi_hely) %>% 
+      summarise(n = n(), .groups = 'drop')
+    # print(head(locally_saved))
+    
+    pub_by_place <- pub_normalized %>% 
+      group_by(x_nyomtatasi_hely) %>% 
+      summarise(n = n(), .groups = 'drop')
+    # print(head(pub_by_place))
+    
+    
+    final <- pub_by_place %>% 
+      left_join(locally_saved, join_by(x_nyomtatasi_hely)) %>% 
+      rename(all = n.x, locally_saved = n.y) %>% 
+      mutate(
+        locally_saved = ifelse(is.na(locally_saved), 0, locally_saved),
+        saved = locally_saved / all * 100,
+        lost = 100-saved
+      ) %>% 
+      arrange(desc(saved)) %>% 
+      left_join(coords, by = c("x_nyomtatasi_hely" = "city")) %>% 
+      filter(!is.na(geoid)) %>% 
+      filter(country %in% selected_country) %>% 
+      select(-c(geoid, name, country)) %>% 
+      left_join(coords_hu, by = c('x_nyomtatasi_hely' = 'city')) %>% 
+      mutate(x_nyomtatasi_hely = ifelse(is.na(hu), x_nyomtatasi_hely, hu)) %>% 
+      select(-hu)
+    # print(head(final))
+    
+    minx <- min(final$long) - 0.2
+    maxx <- max(final$long) + 0.2
+    miny <- min(final$lat) - 0.2
+    maxy <- max(final$lat) + 0.2
+    
+    map.europe <- map_data("world")
+    basemap <- ggplot() +
+      geom_polygon(
+        data = map.europe,
+        aes(x = long, y = lat, group = group),
+        fill = '#ffffff',
+        colour = '#999999'
+      ) +
+      coord_cartesian(xlim = c(minx, maxx), ylim = c(miny, maxy)) +
+      theme(
+        legend.position = 'none',
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        # legend.title = element_text(size=rel(0.5)), 
+        # legend.text = element_text(size=rel(0.5))
+      )
+    
+    ggplot() +
+      geom_polygon(
+        data = map.europe,
+        aes(x = long, y = lat, group = group),
+        fill = '#ffffff',
+        colour = '#999999'
+      ) + 
+      coord_map(xlim = c(minx, maxx), ylim = c(miny, maxy)) +
+      geom_scatterpie(
+        aes(x=long, y=lat, group=x_nyomtatasi_hely, r=log2(all)/20),
+        data=final,
+        alpha = 0.4,
+        cols=c('saved', 'lost'),
+        color=NA
+      ) +
+      geom_text(
+        data = final,
+        mapping = aes(x = long, y = lat, label = x_nyomtatasi_hely),
+        nudge_y = -0.1,
+        size = 3
+      ) +
+      geom_text(
+        data = final,
+        mapping = aes(x = long, y = lat, label = paste0('(', all, ')')),
+        color = '#666666',
+        nudge_y = -0.25,
+        size = 3
+      ) +
+      geom_scatterpie_legend(
+        radius = log2(final$all)/20, 
+        x = 16.5, y = 46,
+        labeller=function(x) 2^(x*20)) +
+      labs(
+        title='Milyen arányban találhatók meg helyi gyűjteményben az itt nyomtatott kiadványok?',
+        subtitle = paste0('évkör: ', min_year, '-', max_year),
+        caption = 'A diagramok mérete kiadványszám log2 értékét tükrözi, ezért a\nkiadványszámok tényleges aránya nagyobb a diagrammokénál'
+      ) +
+      scale_fill_discrete(name = 'megtalálható?', 
+                          labels = c('igen', 'nem')) +
+      theme(
+        # legend.position = 'none',
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        # legend.title = element_text(size=rel(0.5)), 
+        # legend.text = element_text(size=rel(0.5))
+      )
+    
   })
 }
 

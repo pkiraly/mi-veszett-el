@@ -150,4 +150,4 @@ df <- df %>%
   
 
 write_tsv(df, 'data_raw/rmny-1-5.tsv', na = "")
-write_tsv(df, 'shiny/data/rmny-1-5.tsv', na = "")
+write_tsv(df, 'shiny/rmny/data/rmny-1-5.tsv', na = "")
