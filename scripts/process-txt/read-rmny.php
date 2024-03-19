@@ -20,11 +20,13 @@ $cities = [];
 $olimToLocation = initOlimToLocation();
 $olims = [];
 $debug = false;
+$range = ['2626', '3696'];
+$id2languages = processLanguageIndex('data_raw/nyelv4.txt');
 
 $file = $argv[1];
 $lines = file($file);
 $impressums = processImpressums($file);
-$csv = fopen('rmny4.csv', 'w');
+$csv = fopen('data/rmny4.csv', 'w');
 csvHeader($csv);
 
 $prev = '';
@@ -96,7 +98,7 @@ foreach ($lines as $line_num => $line) {
     echo 'other line: ', $record->id, ": '$line'", LN;
   }
 }
-printOlims();
+// printOlims();
 
 function processRecord($record) {
   global $impressums;

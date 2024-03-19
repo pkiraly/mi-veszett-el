@@ -25,11 +25,13 @@ $missing_locations = ['4071', '4510', '4229'];
 $olimToLocation = initOlimToLocation();
 $olims = [];
 $debug = false;
+$range = ['3697', '4628'];
+$id2languages = processLanguageIndex('data_raw/nyelv5.txt');
 
 $file = $argv[1];
 $lines = file($file);
 $impressums = processImpressums($file);
-$csv = fopen('rmny5.csv', 'w');
+$csv = fopen('data/rmny5.csv', 'w');
 csvHeader($csv);
 
 $prev = '';
@@ -111,7 +113,7 @@ foreach ($lines as $line_num => $line) {
   }
 }
 
-printOlims();
+// printOlims();
 
 function processRecord($record) {
   global $impressums;

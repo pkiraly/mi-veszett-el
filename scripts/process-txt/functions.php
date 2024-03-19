@@ -1,14 +1,51 @@
 <?php
 
+$languages = ['más nyelven' => 'egyéb',
+  'magyar vers idegen nyelvű műben' => 'magyar;idegen nyelv',
+  'magyar szövegek nem magyar nyelvű műben' => 'magyar;idegen nyelv',
+  'latin ismeretlen' => 'latin;ismeretlen', 'görög-keleti, románul' => 'román',
+  'magyarul és latinul' => 'magyar;latin', 'latinul, latin és német versekkel' => 'latin;német',
+  'németül, latin verssel' => 'német;latin', 'németül, német és latin versekkel' => 'német;latin',
+  // 4
+  'latin–német–magyar-biblikus cseh' => 'latin;német;magyar;biblikus cseh',
+  'latin–biblikus cseh–magyar–német' => 'latin;biblikus cseh;magyar;német',
+  'latin–cseh–magyar–német' => 'latin;cseh;magyar;német',  'latin–görög–magyar–német' => 'latin;görög;magyar;német',
+  'magyar–görög–latin–német' => 'magyar;görög;latin;német',  'latin–magyar–német–cseh' => 'latin;magyar;német;cseh',
+  // 3
+  'latin–német-magyar' => 'latin;német;magyar', 'latin–magyar-német' => 'latin;magyar;német',
+  'magyar–latin–német' => 'magyar;latin;német', 'latin–cseh–német' => 'latin;cseh;német',
+  'latin–magyar–német' => 'latin;magyar;német', 'latin–magyar–biblikus cseh' => 'latin;magyar;biblikus cseh',
+  'latin–német–cseh' => 'latin;német;cseh',
+  // 2
+  'német-latin' => 'német;latin', 'latin-német' => 'latin-német', 'latin–német' => 'latin;német',
+  'latin-magyar' => 'latin;magyar', 'magyar–latin' => 'magyar;latin',
+  'magyar-latin' => 'magyar;latin', 'latin–biblikus cseh' => 'latin;biblikus cseh', 'latin–görög' => 'latin;görög',
+  'latin–magyar' => 'latin;magyar', 'latin-magyar' => 'latin;magyar', 'magyar–német' => 'magyar;német',
+  'latin-német' => 'latin;német', 'latin–lengyel' => 'latin;lengyel',
+  // 1
+  'magyarul' => 'magyar', 'magyar' => 'magyar', 'latin' => 'latin',
+  'latinul' => 'latin', 'német' => 'német', 'szlovákul' => 'szlovák',
+  'biblikus cseh nyelven' => 'biblikus cseh', 'biblikus cseh' => 'biblikus cseh',
+  'cseh nyelven' => 'cseh', 'cseh' => 'cseh',
+  'franciául' => 'francia', 'francia' => 'francia',
+  'hollandul' => 'holland', 'holland' => 'holland',
+  'románul' => 'román', 'román' => 'román', 'szász' => 'szász', 'szlovák' => 'szlovák',
+  'görög' => 'görög', 'angolul' => 'angol', 'olasz' => 'olasz', 'héber' => 'héber', 'angol' => 'angol',
+  'lengyel' => 'lengyel', 'szír' => 'szír', 'több nyelven' => 'több nyelven', 'fríz' => 'fríz',
+  'horvát' => 'horvát', 'lett' => 'lett', 'orosz' => 'orosz', 'plattdeutsch' => 'plattdeutsch',
+  'svéd' => 'svéd', 'szlovén' => 'szlovén', 'dán' => 'dán'
+];
+$languagesRegex = '/\\b(' . join('|', array_keys($languages)) . ')\\b/';
+
 /**
  * @param $record
  * @param array $impressums
  * @return array
  */
 function finalizeRecord($record, array $impressums) {
-  global $csv;
+  global $csv, $id2languages;
 
-  if ($record->isReference || $record->title == 'Vacat!')
+  if ($record->isReference || (isset($record->title) && $record->title == 'Vacat!'))
     return;
 
   if (isset($record->physicalDescription)) {
@@ -23,23 +60,37 @@ function finalizeRecord($record, array $impressums) {
   } else {
     echo $record->id, LN;
   }
+  if (isset($id2languages[$record->id])) {
+    sort($id2languages[$record->id]);
+    $record->languages = join('; ', $id2languages[$record->id]);
+  }
   unset($record->lines);
   unset($record->lineCount);
+  if (preg_match('/^(\d+)(.*?)$/', $record->id, $matches)) {
+    $record->rmnyId = $matches[1];
+    $record->rmnyIdS = $matches[2];
+  } else if (preg_match('/^Appendix (\d+)(.*?)$/', $record->id, $matches)) {
+    $record->rmnyId = $matches[1];
+    $record->rmnyIdS = $matches[2];
+  } else {
+    error_log('WRONG id: ' . $record->id);
+  }
+
   $cells = [
-    $record->id, $record->externalData, $record->hypothetic, $record->appendix,
+    $record->id, $record->rmnyId, $record->rmnyIdS,
+    $record->externalData, $record->hypothetic, $record->appendix,
     ($record->title ?? ''),
-    ($record->collections ?? ''),
-    $record->collectionCount,
-    ($record->olim ?? ''),
-    $record->olimCount,
-    ($record->facsimile ?? false),
-    ($record->kollacio ?? ''), ($record->terjedelem ?? ''), ($record->formatum ?? ''), ($record->konyvdisz ?? ''),
-    ($record->references ?? ''), ($record->genre ?? ''),
     (isset($record->impressum) ? $record->impressum->year : ''),
     (isset($record->impressum) ? $record->impressum->location : ''),
     (isset($record->impressum) ? $record->impressum->printer : ''),
-    ($record->cities ?? ''),
-    ($record->olimCities ?? '')
+    '',
+    ($record->kollacio ?? ''), ($record->terjedelem ?? ''), ($record->formatum ?? ''), ($record->konyvdisz ?? ''),
+    ($record->references ?? ''),
+    ($record->genre ?? ''),
+    ($record->facsimile ?? false),
+    ($record->languages ?? ''),
+    ($record->collections ?? ''), $record->collectionCount, ($record->cities ?? ''),
+    ($record->olim ?? ''), $record->olimCount, ($record->olimCities ?? '')
   ];
   fputcsv($csv, $cells);
 
@@ -48,12 +99,16 @@ function finalizeRecord($record, array $impressums) {
 
 function csvHeader($csv) {
   $cells = [
-    '01Sorszám', 'externalData', 'hypothetic', 'appendix', '03Cím',
-    'collections', 'collectionCount', 'olim', 'olimCount', 'facsimile',
+    '01Sorszám', '01Sorszám_RMNY', '01Sorszám_RMNY-S',
+    'externalData', 'hypothetic', 'appendix', '03Cím',
+    '01xIdö', '01xHely', '06xNyomda',
+    '06Nyomda',
     '07Kolláció', '08Terjedelem', '09Formátum', '10Könyvdísz',
     '11Forrás', '12Tárgy',
-    '01xIdö', '01xHely', '06xNyomda',
-    'cities', 'olimCities'
+    '14Facsimile',
+    '16Nyelv',
+    '13Lelöhely', '13Lelöhely_count', 'cities',
+    '15Olim', '15Olim_count', 'olimCities'
   ];
 
   fputcsv($csv, $cells);
@@ -210,12 +265,14 @@ function extractLocations($record) {
           $record->olimCount = count($currentOlims);
           $collections = array_pop($record->lines);
           $olimCities = [];
-          foreach ($currentOlims as $olim) {
-            $olim = preg_replace('/ \([^()]+\)/', '', $olim);
+          foreach ($currentOlims as $olimOrig) {
+            if ($olimOrig == '')
+              continue;
+            $olim = preg_replace('/ \([^()]+\)/', '', $olimOrig);
             if (isset($olimToLocation[$olim]))
               $olimCities[] = $olimToLocation[$olim];
             else {
-              error_log('missing resolution @ ' . $record->id . ": " . $olim);
+              error_log('missing resolution @ ' . $record->id . ": '" . $olimOrig . "'");
               error_log('   ' . $record->olim);
             }
             $olim = $olimToLocation[$olim] ?? $olim;
@@ -327,6 +384,59 @@ function extractLocations($record) {
   }
 }
 
+function processLanguageIndex($languageFile): array {
+  global $id2languages;
+
+  $id2languages = [];
+  $lines = file($languageFile);
+  foreach ($lines as $line_num => $line) {
+    $line = trim($line);
+    if ($line == '---') {
+      $normal = FALSE;
+      continue;
+    }
+    processLanguageLine($line_num, $line);
+  }
+  return $id2languages;
+}
+
+function processLanguageLine($line_num, $line): void {
+  global $languages, $languagesRegex, $id2languages, $range;
+  $detected = FALSE;
+  if (preg_match($languagesRegex, $line, $matches)) {
+    $detected = explode(';', $languages[$matches[1]]);
+    if (!preg_match('/-/', $matches[1])) {
+      $languagesRegex2 = '/-\\b(' . join('|', array_keys($languages)) . ')\\b/';
+      if (preg_match($languagesRegex2, $line)) {
+        echo 'x2] ', $line_num, ": '$line'", LN;
+      }
+    }
+  } else {
+    echo 'x0] ', $line_num, ": '$line'", LN;
+  }
+  $ids = extractNumbers($line_num, $line);
+  // echo $line, LN;
+  // echo TB, join(' - ', $detected), ' = ', join(' - ', $ids), LN;
+  foreach ($ids as $id) {
+    if ($id < $range[0] || $id > $range[1])
+      echo 'ERROR: ', $id, LN;
+    if (!isset($id2languages[$id]))
+      $id2languages[$id] = [];
+    foreach ($detected as $lang) {
+      if (!in_array($lang, $id2languages[$id]))
+        $id2languages[$id][] = $lang;
+    }
+  }
+}
+
+function extractNumbers($line_num, $line): array {
+  $ids = [];
+  if (preg_match_all('/(\d{4}[A-Z]?)/', $line, $matches)) {
+    $ids = $matches[1];
+  }
+  return $ids;
+}
+
 function printOlims() {
   global $olims;
   arsort($olims);
@@ -366,6 +476,7 @@ function initOlimToLocation() {
     'Betlér, Nádasdy-könyvtár' => 'Betlér',
     'B. Apor László ktárában Bécsben' => 'Bécs',
     'Bibliotheca Musaei Nat. Hung. Budapestini (Zelliger: Pantheon 1676/4)' => 'Budapest',
+    'Bibliotheca Musaei Nat. Hung. Budapestini' => 'Budapest',
     'Budapest, Nat.' => 'Budapest',
     'Blaj, Moldovan I. M.' => 'Blaj',
     'Brassai ev. gymn.' => 'Brassó',
@@ -467,6 +578,7 @@ function initOlimToLocation() {
     'Esztergom' => 'Esztergom',
     'Fălciu, Muzeul Pr. V. Ursăcescu din Olteneşti.' => 'Fălciu',
     'Franz Xaver Dressler (vide Türk: i. m. 116)' => 'Szeben',
+    'Franz Xaver Dressler' => 'Szeben',
     'Fáy könyvtárban Tibold-Daróczon' => 'Tibolddaróc',
     'Fáy-ktár Tibold-Daróczon' => 'Tibolddaróc',
     'Fáy-ktárban Tibold-Daróczon' => 'Tibolddaróc',
@@ -612,6 +724,7 @@ function initOlimToLocation() {
     'M.-Vásárhelyen a gr. Teleki-család levéltárában XXIV. czim 3287. sz. a. (2 utolsó levele hij.)' => 'Marosvásárhely',
     'M.-Vásárhelyen a gr. Teleki-család levéltárában XXIV. czim 3287. sz. a.' => 'Marosvásárhely',
     'Martin Nat * (C-variáns)' => 'Martin',
+    'Martin Nat *' => 'Martin',
     'Martin Nat' => 'Martin',
     'Medgyesi franc. z.' => 'Medgyes',
     'Medgyes, ev. gymn.' => 'Medgyes',
@@ -650,6 +763,7 @@ function initOlimToLocation() {
     'Nagyszeben, ev. gimn.' => 'Nagyszeben',
     'Nagyszombati r. c. gymn.' => 'Nagyszombat',
     'Nagyőr (Nehre, Strážký, SK), Czóbel István könyvtára ← Mednyánszky könyvtár' => 'Nagyőr',
+    'Nagyőr, Czóbel István könyvtára ← Mednyánszky könyvtár' => 'Nagyőr',
     'Néhre, Mednyánszky Alajos' => 'Nagyőr',
     'Néhre, Szepesben b. Mednyánszky ktárában.' => 'Nagyőr',
     'Nyitra' => 'Nyitra',
@@ -822,6 +936,7 @@ function initOlimToLocation() {
     'Torda, unit. egyh.' => 'Torda',
     'Torda, unit. gymn.' => 'Torda',
     'Torda, unitár. gymn.' => 'Torda',
+    'Tordai unitár. gymn.' => 'Torda',
     'Târgu Mureş' => 'Târgu Mureş',
     'Trencsén, „Archív Braneckého”' => 'Trencsén',
     'Turócszentmárton, MS' => 'Turócszentmárton',

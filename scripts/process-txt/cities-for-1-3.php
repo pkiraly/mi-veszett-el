@@ -8,8 +8,8 @@ $olimToLocation = initOlimToLocation();
 
 $csvFile = 'data/rmny-1-3.lelohely.csv';
 $lines = file($csvFile);
-$csv = fopen('data/rmny1-3.extra.csv', 'w');
-fputcsv($csv, ['01Sorszám_RMNY', '01Sorszám_RMNY', 'cities', 'olimCities']);
+$csv = fopen('data/rmny-1-3.lelohely2cities.csv', 'w');
+fputcsv($csv, ['id', '00Bibliográfia', '01Sorszám_RMNY', '01Sorszám_RMNY-S', 'cities', 'olimCities']);
 
 $prev = '';
 $record = [];
@@ -29,7 +29,7 @@ foreach ($lines as $lineNumber => $line) {
     $record->hypothetic = false;
     $record->appendix = false;
     $record->isReference = false;
-    $record->id = $record->{'01Sorszám_RMNY'};
+    // $record->id = $record->{'01Sorszám_RMNY'} . $record->{'01Sorszám_RMNY-S'};
     // print_r($record);
 
     if ($record->{'13Lelöhely'} == 'NA')
@@ -40,8 +40,11 @@ foreach ($lines as $lineNumber => $line) {
       $record->lines[] = 'Olim: ' . $record->{'15Olim'};
     }
     extractLocations($record);
-    // if ($record->{'13Lelöhely_count'} != $record->collectionCount)
-    //  print_r($record);
-    fputcsv($csv, [$record->{'01Sorszám_RMNY'}, $record->{'01Sorszám_RMNY'}, ($record->cities ?? ''), ($record->olimCities ?? '')]);
+    if ($record->{'13Lelöhely_count'} != $record->collectionCount)
+      print_r($record);
+    fputcsv($csv, [
+      $record->id, $record->{'00Bibliográfia'}, $record->{'01Sorszám_RMNY'}, $record->{'01Sorszám_RMNY-S'},
+      ($record->cities ?? ''), ($record->olimCities ?? '')
+    ]);
   }
 }
