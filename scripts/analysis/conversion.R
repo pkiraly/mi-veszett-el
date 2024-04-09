@@ -146,8 +146,17 @@ df <- read_tsv('data_raw/RMNYStat-v04 - RMNYStat-Egyesített tábla.tsv',
                col_types = types)
 
 df <- df %>% 
-  mutate(ivszam = as.numeric(str_replace(ivszam, ",", ".")))
-  
+  mutate(
+    ivszam = as.numeric(str_replace(ivszam, ",", ".")),
+    x_nyelvi_hungarikum = ifelse(is.na(x_nyelvi_hungarikum), NA, ifelse(x_nyelvi_hungarikum == "x", TRUE, FALSE)),
+    x_teruleti_hungarikum = ifelse(is.na(x_teruleti_hungarikum), NA, ifelse(x_teruleti_hungarikum == "x", TRUE, FALSE)),
+    x_szemelyi_hungarikum = ifelse(is.na(x_szemelyi_hungarikum), NA, ifelse(x_szemelyi_hungarikum == "x", TRUE, FALSE)),
+    x_targyi_hungarikum = ifelse(is.na(x_targyi_hungarikum), NA, ifelse(x_targyi_hungarikum == "x", TRUE, FALSE)),
+  )
+
 
 write_tsv(df, 'data_raw/rmny-1-5.tsv', na = "")
 write_tsv(df, 'shiny/rmny/data/rmny-1-5.tsv', na = "")
+
+write_rds(df, 'data_raw/rmny-1-5.rds')
+write_rds(df, 'shiny/rmny/data/rmny-1-5.rds')

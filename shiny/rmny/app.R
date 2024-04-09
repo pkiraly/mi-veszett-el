@@ -1,6 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(scatterpie)
+source('functions.R')
 
 foreign_cities <- c(
   'Velence', 'Amszterdam', 'Frankfurt am Main', 'Bázel', 'Lyon', 'Krakkó',
@@ -11,7 +12,7 @@ foreign_cities <- c(
   'Amsterdam', 'Antwerpen', 'Brüsszel', 'Königsberg')
 selected_countries <- c('Hungary', 'Slovakia', 'Romania', 'Austria', 'Slovenia', 'Croatia', 'Serbia')
 
-df <- read_tsv('data/rmny-1-5.tsv')
+df <- read_rds('data/rmny-1-5.rds')
 year_min <- min(df$x_nyomtatasi_ev)
 year_max <- max(df$x_nyomtatasi_ev)
 
@@ -74,6 +75,27 @@ ui <- navbarPage(
         column(
           9, 
           plotOutput("tab3_map", height = 600)
+        )
+      )
+    )
+  ),
+  tabPanel(
+    "Eloszlások",
+    fluidPage(
+      fluidRow(
+        column(
+          3,
+          sliderInput("tab4_ev", label = "nyomtatás éve", min = year_min, max = year_max,
+                      value = c(year_min, year_max),
+                      step = 1, width = '100%'),
+          radioButtons(
+            "tab4_type",
+            label = "eloszlás",
+            choices = c('nyelv', 'formátum', 'nyomtatás helye', 'méret', 'műfaj')),
+        ),
+        column(
+          9, 
+          plotOutput("tab4_image", height = 600)
         )
       )
     )
@@ -485,6 +507,30 @@ server <- function(input, output, session) {
         # legend.text = element_text(size=rel(0.5))
       )
     
+  })
+  
+  output$tab4_image <- renderPlot({
+    min_year <- input$tab4_ev[1]
+    max_year <- input$tab4_ev[2]
+    max_year <- ifelse(max_year == 100, Inf, max_year)
+    type <- input$tab4_type
+    limit <- 50
+
+    df2 <- df %>% 
+      filter(x_teruleti_hungarikum == TRUE) %>% 
+      filter(x_nyomtatasi_ev >= min_year & x_nyomtatasi_ev <= max_year)
+    
+    if (type == 'nyelv') {
+      get_distribution_by_language(df2, limit)
+    } else if (type == 'formátum') {
+      get_distribution_by_format(df2, limit)
+    } else if (type == 'nyomtatás helye') {
+      get_distribution_by_city(df2, limit)
+    } else if (type == 'méret') {
+      get_distribution_by_size(df2, limit)
+    } else if (type == 'műfaj') {
+      get_distribution_by_genre(df2, limit)
+    }
   })
 }
 
