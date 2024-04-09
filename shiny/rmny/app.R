@@ -17,7 +17,7 @@ year_min <- min(df$x_nyomtatasi_ev)
 year_max <- max(df$x_nyomtatasi_ev)
 
 ui <- navbarPage(
-    "1472-1685 (RMNY 1-5.)",
+    "Az RMNY 1473-1685 (I-V.) elemzése",
     tabPanel(
       "Ívszám",
       fluidPage(
