@@ -148,9 +148,8 @@ plot_distribution <- function(df, limit, plot_title) {
     theme_bw() +
     labs(
       title = plot_title,
-      x = 'fennmaradt példányok száma',
-      y = 'kötetszám',
-      caption = 'A vörös szín a kikövetkeztetett, illetve az 50 vagy annál nagyobb példányban fennmaradt köteteket jelzi'
+      x = 'Példányok száma',
+      y = 'RMNY tételek száma',
     ) +
     scale_y_log10() +
     scale_fill_manual(labels = c('cornflowerblue', 'maroon'), values = c('cornflowerblue', 'maroon'))

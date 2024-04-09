@@ -95,7 +95,13 @@ ui <- navbarPage(
         ),
         column(
           9, 
-          plotOutput("tab4_image", height = 600)
+          p('Hány RMNY tétel van az adatbázisban a x példányban előforduló 
+          tételek esetében, ahol az x tengely: a példányszámot, az y tengely: a tételek 
+          számát (nem azonos a tételszámmmal) jelenti z változó figyelembevételével 
+          (nyelv, formátum, nyomtatási hely, ívméret [rét] és műfaji főkategória)'),
+          plotOutput("tab4_image", height = 600),
+          p('Figyelem: az Y tengely a tételek számának 10-as alapú logaritmusát adja meg, amely - különösen a "felső tartományban" (10 fölötti értékek) torzít'),
+          p('A vörös szín a kikövetkeztetett, illetve az 50 vagy annál nagyobb példányban fennmaradt köteteket jelzi')
         )
       )
     )
