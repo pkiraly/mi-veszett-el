@@ -89,9 +89,15 @@ ui <- navbarPage(
                       value = c(year_min, year_max),
                       step = 1, width = '100%'),
           radioButtons(
-            "tab4_type",
-            label = "eloszlás",
+            "tab4_type1",
+            label = "első szint",
             choices = c('nyelv', 'formátum', 'nyomtatás helye', 'méret', 'műfaj')),
+          radioButtons(
+            "tab4_type2",
+            label = "második szint",
+            choices = c('nincs', 'nyelv', 'formátum', 'nyomtatás helye', 'méret', 'műfaj'),
+            selected = 'nincs'
+          ),
         ),
         column(
           9, 
@@ -519,23 +525,27 @@ server <- function(input, output, session) {
     min_year <- input$tab4_ev[1]
     max_year <- input$tab4_ev[2]
     max_year <- ifelse(max_year == 100, Inf, max_year)
-    type <- input$tab4_type
+    type1 <- input$tab4_type1
+    type2 <- input$tab4_type2
     limit <- 50
 
     df2 <- df %>% 
       filter(x_teruleti_hungarikum == TRUE) %>% 
       filter(x_nyomtatasi_ev >= min_year & x_nyomtatasi_ev <= max_year)
-    
-    if (type == 'nyelv') {
-      get_distribution_by_language(df2, limit)
-    } else if (type == 'formátum') {
-      get_distribution_by_format(df2, limit)
-    } else if (type == 'nyomtatás helye') {
-      get_distribution_by_city(df2, limit)
-    } else if (type == 'méret') {
-      get_distribution_by_size(df2, limit)
-    } else if (type == 'műfaj') {
-      get_distribution_by_genre(df2, limit)
+    if (type2 != 'nincs') {
+      get_mixed_distribution(df2, limit, type1, type2)
+    } else {
+      if (type1 == 'nyelv') {
+        get_distribution_by_language(df2, limit)
+      } else if (type1 == 'formátum') {
+        get_distribution_by_format(df2, limit)
+      } else if (type1 == 'nyomtatás helye') {
+        get_distribution_by_city(df2, limit)
+      } else if (type1 == 'méret') {
+        get_distribution_by_size(df2, limit)
+      } else if (type1 == 'műfaj') {
+        get_distribution_by_genre(df2, limit)
+      }
     }
   })
 }
