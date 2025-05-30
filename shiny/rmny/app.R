@@ -12,9 +12,10 @@ foreign_cities <- c(
   'Amsterdam', 'Antwerpen', 'Brüsszel', 'Königsberg')
 selected_countries <- c('Hungary', 'Slovakia', 'Romania', 'Austria', 'Slovenia', 'Croatia', 'Serbia')
 
-df <- read_rds('data/rmny-1-5.rds')
-year_min <- min(df$x_nyomtatasi_ev)
-year_max <- max(df$x_nyomtatasi_ev)
+df <- read_rds('data/rmny-v04.rds')
+names(df)
+year_min <- min(df$x_nyomtatasi_ev, na.rm = TRUE)
+year_max <- max(df$x_nyomtatasi_ev, na.rm = TRUE)
 
 ui <- navbarPage(
     "Az RMNY 1473-1685 (I-V.) elemzése",
@@ -379,12 +380,15 @@ server <- function(input, output, session) {
     synonyms <- read_csv('data/place-synonyms-normalized.csv')
     
     df2 <- df %>% 
-      select(id, x_nyomtatasi_ev, x_nyomtatasi_hely, x_letezo_peldanyok_szorodasa, x_letezett_peldanyok_szorodasa) %>% 
+      select(id, 
+             x_nyomtatasi_ev, x_nyomtatasi_hely,
+             x_s2_letezo_peldanyok_szorodasa,
+             x_s2_peldanyok_letezett_szorodasa_calc) %>% 
       filter(x_nyomtatasi_ev >= min_year & x_nyomtatasi_ev <= max_year)
 
     libraries <- df2 %>%
-      select(id, x_letezo_peldanyok_szorodasa) %>% 
-      rename(current = x_letezo_peldanyok_szorodasa) %>% 
+      select(id, x_s2_letezo_peldanyok_szorodasa) %>% 
+      rename(current = x_s2_letezo_peldanyok_szorodasa) %>% 
       filter(!is.na(current)) %>% 
       separate_longer_delim(current, ", ") %>% 
       separate(current, c('current', 'count'), '=') %>% 
@@ -395,8 +399,8 @@ server <- function(input, output, session) {
     # print(head(libraries))
     
     olim <- df2 %>%
-      select(id, x_letezett_peldanyok_szorodasa) %>% 
-      rename(olim = x_letezett_peldanyok_szorodasa) %>% 
+      select(id, x_s2_peldanyok_letezett_szorodasa_calc) %>% 
+      rename(olim = x_s2_peldanyok_letezett_szorodasa_calc) %>% 
       filter(!is.na(olim)) %>% 
       separate_longer_delim(olim, ", ") %>% 
       left_join(synonyms, by = c("olim" = "original")) %>% 
