@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+full,increased,chao1,883.70,845.70,925.63
+full,increased,ichao1,933.00,864.47,997.59
+full,increased,ace,923.76,888.71,949.80
+full,increased,jackknife,1025.00,949.70,1100.30
+full,increased,egghe_proot,962.61,897.29,1015.74

@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+lang,latin,chao1,1408.22,1346.51,1502.80
+lang,latin,ichao1,1517.22,1419.31,1588.34
+lang,latin,ace,1333.96,1289.02,1402.85
+lang,latin,jackknife,1824.00,1592.59,2055.41
+lang,latin,egghe_proot,1672.75,1553.07,1758.91

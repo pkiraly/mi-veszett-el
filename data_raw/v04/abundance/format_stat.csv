@@ -1,0 +1,11 @@
+format,is_hipothetical,n
+1,FALSE,53
+1,TRUE,2
+2,FALSE,281
+2,TRUE,7
+4,FALSE,1223
+4,TRUE,46
+8,FALSE,766
+8,TRUE,26
+egyéb,FALSE,665
+egyéb,TRUE,654

@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+format,4,chao1,1644.26,1608.05,1691.75
+format,4,ichao1,1749.28,1696.37,1858.18
+format,4,ace,1661.01,1604.56,1706.55
+format,4,jackknife,1989.00,1824.76,2153.24
+format,4,egghe_proot,1871.81,1752.52,1980.03

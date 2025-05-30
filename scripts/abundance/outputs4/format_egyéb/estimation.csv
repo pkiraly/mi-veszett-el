@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+format,egyéb,chao1,973.33,938.51,1037.92
+format,egyéb,ichao1,1040.32,971.32,1099.26
+format,egyéb,ace,969.21,945.53,991.02
+format,egyéb,jackknife,1187.00,1058.99,1315.01
+format,egyéb,egghe_proot,1109.77,1039.25,1180.51

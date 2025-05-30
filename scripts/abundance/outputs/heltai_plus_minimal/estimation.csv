@@ -1,0 +1,12 @@
+data,method,estimation,richness,min,max
+heltai,plus_minimal,chao1,1029.88,997.12,1071.78
+heltai,plus_minimal,ichao1,1048.87,990.67,1121.70
+heltai,plus_minimal,ace,1081.01,1043.01,1139.42
+heltai,plus_minimal,jackknife,1594.00,1209.75,1978.25
+heltai,plus_minimal,egghe_proot,1132.75,1057.26,1206.61
+data,method,estimation,richness,min,max
+heltai,plus_minimal,chao1,1024.83,983.31,1076.58
+heltai,plus_minimal,ichao1,1062.46,991.86,1101.49
+heltai,plus_minimal,ace,1055.71,1036.84,1085.88
+heltai,plus_minimal,jackknife,1180.00,1100.53,1259.47
+heltai,plus_minimal,egghe_proot,1138.94,1065.61,1266.25

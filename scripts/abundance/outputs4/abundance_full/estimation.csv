@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+abundance,full,chao1,4296.56,4192.04,4433.23
+abundance,full,ichao1,4604.33,4495.89,4776.47
+abundance,full,ace,4185.32,4127.41,4263.12
+abundance,full,jackknife,5527.00,5108.93,5945.07
+abundance,full,egghe_proot,5017.95,4821.43,5191.33

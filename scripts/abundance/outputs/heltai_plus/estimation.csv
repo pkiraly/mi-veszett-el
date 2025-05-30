@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+heltai,plus,chao1,1137.64,1097.54,1184.85
+heltai,plus,ichao1,1220.69,1170.21,1271.46
+heltai,plus,ace,1136.65,1069.14,1187.60
+heltai,plus,jackknife,1385.00,1246.63,1523.37
+heltai,plus,egghe_proot,1295.69,1167.40,1400.20

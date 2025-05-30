@@ -1,0 +1,6 @@
+data,method,estimation,richness,min,max
+lang,magyar,chao1,1580.01,1512.05,1668.67
+lang,magyar,ichao1,1672.40,1604.27,1725.40
+lang,magyar,ace,1548.74,1507.94,1589.98
+lang,magyar,jackknife,1891.00,1735.85,2046.15
+lang,magyar,egghe_proot,1844.42,1735.00,1997.61

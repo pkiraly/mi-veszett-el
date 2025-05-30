@@ -1,0 +1,12 @@
+data,method,estimation,richness,min,max
+latin,plus_minimal,chao1,1364.38,1297.31,1434.42
+latin,plus_minimal,ichao1,1476.93,1418.70,1567.10
+latin,plus_minimal,ace,1294.13,1191.02,1456.10
+latin,plus_minimal,jackknife,1769.00,1545.79,1992.21
+latin,plus_minimal,egghe_proot,1600.85,1462.55,1684.01
+data,method,estimation,richness,min,max
+latin,plus_minimal,chao1,1336.00,1203.41,1425.56
+latin,plus_minimal,ichao1,1460.15,1386.71,1545.30
+latin,plus_minimal,ace,1265.28,1149.39,1365.01
+latin,plus_minimal,jackknife,1937.00,1590.38,2283.62
+latin,plus_minimal,egghe_proot,1588.45,1497.74,1753.89

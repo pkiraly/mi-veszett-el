@@ -1,0 +1,13 @@
+has_examplar,x_nyelvek,n,year
+FALSE,latin,48,2024
+FALSE,magyar,96,2024
+FALSE,német,14,2024
+TRUE,latin,245,2024
+TRUE,magyar,337,2024
+TRUE,német,34,2024
+FALSE,latin,47,1971
+FALSE,magyar,83,1971
+FALSE,német,12,1971
+TRUE,latin,237,1971
+TRUE,magyar,324,1971
+TRUE,német,29,1971

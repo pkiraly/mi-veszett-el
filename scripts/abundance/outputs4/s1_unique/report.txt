@@ -1,0 +1,32 @@
+[basic_stats] 18:34:33
+[abundance_barplot] 18:34:33
+[abundance_histogram] 18:34:33
+[diversity (chao1)] 18:34:34
+diversity (chao1): 1139.326084153522
+[diversity (jackknife)] 18:34:34
+diversity (jackknife): {'richness': 1688.0, 'order': 5}
+[Diversity measurement] 18:34:34
+Diversity measurement
+chao1: 1139.33
+ichao1: 1229.08
+ace: 1035.80
+jackknife: 1688.00
+egghe_proot: 1386.51
+species richness: 692
+population size: 3073
+[Diversity measurement with confidence intervals] 18:34:34
+Diversity measurement with confidence intervals
+[Diversity measurement with Empirical] 18:34:34
+Empirical size: 3073
+Unbiased estimate: 43590.85
+[Diversity measurement with minsample] 18:34:34
+minsample/fsolve: 43590.852817852814
+minsample/grid: 43590.852817852814
+[diagn] 18:34:34
+{'richness': 43590.852817852814, 'x*': 13.185113185113185, 'n': 3073}
+[minsample_diagnostic_plot] 18:34:34
+[species_accumulation] 18:34:34
+[minsample estimation] 18:36:01
+[density_plot (iChao1)] 18:36:37
+[density_plot (empirical)] 18:36:38
+[survival_ratio] 18:36:38
