@@ -29,7 +29,7 @@ get_field_by_name <- function(field_name) {
 filter_language <- function(df) {
   df2 <- df %>% 
     filter(!is.na(x_nyelvek)) %>%
-    mutate(peldanyszam = x_letezo_peldanyok_szama) %>% 
+    mutate(peldanyszam = x_s2_letezo_peldanyok_szama) %>% 
     mutate(x_nyelvek = ifelse(x_nyelvek == 'magyar # - latin', 'latin; magyar', x_nyelvek)) %>% 
     mutate(x_nyelvek = ifelse(x_nyelvek == 'latin # - magyar', 'latin; magyar', x_nyelvek)) %>% 
     mutate(x_nyelvek = ifelse(x_nyelvek == 'latin # - német', 'latin; német', x_nyelvek)) %>% 
@@ -66,7 +66,7 @@ filter_format <- function(df) {
                              'egyéb')) %>% 
     mutate(
       x_formatum2 = factor(formatum, levels = c('1°', '2°', '4°', '8°', 'egyéb')),
-      peldanyszam = x_letezo_peldanyok_szama
+      peldanyszam = x_s2_letezo_peldanyok_szama
     )
 }
 
@@ -81,7 +81,7 @@ get_distribution_by_format <- function(df, limit) {
 filter_city <- function(df) {
   df2 <- df %>% 
     filter(!is.na(x_nyomtatasi_hely)) %>% 
-    mutate(peldanyszam = x_letezo_peldanyok_szama)
+    mutate(peldanyszam = x_s2_letezo_peldanyok_szama)
   
   helyek <- df2 %>% 
     select(x_nyomtatasi_hely, peldanyszam) %>%
@@ -109,7 +109,7 @@ filter_size <- function(df) {
   df %>% 
     filter(!is.na(ivszam)) %>% 
     filter(ivszam > 0) %>% 
-    mutate(peldanyszam = x_letezo_peldanyok_szama) %>% 
+    mutate(peldanyszam = x_s2_letezo_peldanyok_szama) %>% 
     mutate(ivszam = ceiling(ivszam)) %>% 
     mutate(ivszam = 
              ifelse(ivszam <= 5, '1-5',
@@ -140,7 +140,7 @@ get_distribution_by_size <- function(df, limit) {
 filter_genre <- function(df) {
   df2 <- df %>% 
     filter(!is.na(x_kiadvanytipus)) %>% 
-    mutate(peldanyszam = x_letezo_peldanyok_szama)
+    mutate(peldanyszam = x_s2_letezo_peldanyok_szama)
   
   mufajok <- df2 %>% 
     select(x_kiadvanytipus, peldanyszam) %>%

@@ -10,10 +10,10 @@ foreign_cities <- c(
   'London', 'Bologna', 'Zürich', 'Herborn', 'Franeker', 'Tübingen', 'Gdansk',
   'Párizs', 'Ulm', 'Lipcse', 'Wroclaw', 'Olmütz', 'Strassburg', 'Hanau',
   'Amsterdam', 'Antwerpen', 'Brüsszel', 'Königsberg')
-selected_countries <- c('Hungary', 'Slovakia', 'Romania', 'Austria', 'Slovenia', 'Croatia', 'Serbia')
+selected_countries <- c(
+  'Hungary', 'Slovakia', 'Romania', 'Austria', 'Slovenia', 'Croatia', 'Serbia')
 
 df <- read_rds('data/rmny-v04.rds')
-names(df)
 year_min <- min(df$x_nyomtatasi_ev, na.rm = TRUE)
 year_max <- max(df$x_nyomtatasi_ev, na.rm = TRUE)
 
@@ -86,7 +86,8 @@ ui <- navbarPage(
       fluidRow(
         column(
           3,
-          sliderInput("tab4_ev", label = "nyomtatás éve", min = year_min, max = year_max,
+          sliderInput("tab4_ev", label = "nyomtatás éve",
+                      min = year_min, max = year_max,
                       value = c(year_min, year_max),
                       step = 1, width = '100%'),
           radioButtons(
@@ -109,6 +110,26 @@ ui <- navbarPage(
           plotOutput("tab4_image", height = 600),
           p('Figyelem: az Y tengely a tételek számának 10-as alapú logaritmusát adja meg, amely - különösen a "felső tartományban" (10 fölötti értékek) torzít'),
           p('A vörös szín a kikövetkeztetett, illetve az 50 vagy annál nagyobb példányban fennmaradt köteteket jelzi')
+        )
+      )
+    )
+  ),
+  tabPanel(
+    "Nyomdahely/év",
+    fluidPage(
+      fluidRow(
+        column(
+          3,
+          sliderInput("tab5_ev", label = "nyomtatás éve",
+                      min = year_min, max = year_max,
+                      value = c(year_min, year_max),
+                      step = 1, width = '100%'),
+        ),
+        column(
+          9, 
+          p('Nyomdahelyek éves kiadványszámai'),
+          plotOutput("tab5_image", height = 600),
+          p('Figyelem: az Y tengely a kiadványok száma szerint van rendezve csökkenő sorrendben')
         )
       )
     )
@@ -551,6 +572,33 @@ server <- function(input, output, session) {
         get_distribution_by_genre(df2, limit)
       }
     }
+  })
+
+  output$tab5_image <- renderPlot({
+    min_year <- input$tab5_ev[1]
+    max_year <- input$tab5_ev[2]
+    max_year <- ifelse(max_year == 100, Inf, max_year)
+    loc_year_n <- df %>% 
+      filter(x_teruleti_hungarikum == TRUE 
+             & bibliografiai_halmaz == 'RMNY' 
+             & x_fazis_2024_esemeny == 'besorolás') %>% 
+      filter(x_nyomtatasi_ev >= min_year & x_nyomtatasi_ev <= max_year) %>% 
+      mutate(location = x_nyomtatasi_hely, year = x_nyomtatasi_ev) %>% 
+      count(location, year)
+
+    locations <- loc_year_n %>% 
+      group_by(location) %>% 
+      summarise(total = sum(n)) %>% 
+      arrange(desc(total)) %>% 
+      select(location) %>% unlist(use.names = FALSE)
+
+    loc_year_n2 <- loc_year_n %>% 
+      mutate(location = factor(location, levels = locations))
+    
+    loc_year_n2 %>% 
+      ggplot(aes(x = year, y = reorder(location, desc(location)), size = n)) + 
+      geom_point(alpha = 0.5, color = "cornflowerblue") +
+      labs(y = 'nyomdahely', x = 'év')
   })
 }
 
