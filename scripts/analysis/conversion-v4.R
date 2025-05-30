@@ -272,8 +272,12 @@ types <- cols(
   `empty3` = col_character()
 )
 
+excel_types <- c("text", "text", "text", "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", "text", "numeric", "numeric", "text", "text", "text", "numeric", "numeric", "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "numeric", "text", "text", "text", "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "numeric", "numeric", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text", "text")
+
 names[99]
 names[100]
+
+str(types$cols)
 
 # df <- read_csv('data_raw/v02/RMNYStat-data_v02_20240826 - RMNYStat-v02.csv')
 # names(df)
@@ -288,7 +292,20 @@ df <- read_tsv(tsv_file,
                skip = 1,
                col_names = names,
                col_types = types)
-names(df)
+ids1 <- df %>% select(id) %>% unlist(use.names = FALSE)
+
+# names(df)
+library(readxl)
+df2 <- read_excel("~/Documents/mi-veszett-el/v04/RMNYStat.xlsx",
+                  col_types = excel_types)
+names(df2) <- names
+df <- df2
+ids2 <- df2 %>% select(`RMNYStat-ID`) %>% unlist(use.names = FALSE)
+
+ids1
+ids2
+setdiff(ids2, ids1)
+
 nrow(df)
 df %>% select(id) %>% print(n = 10)
 
