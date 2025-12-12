@@ -1,3 +1,4 @@
+#' Creates 3-fazisu-becsles.png and 3-fazisu-becsles.csv
 library(tidyverse)
 
 df <- read_rds('data_raw/rmny-v04.rds')
@@ -146,6 +147,64 @@ joined %>%
   )
 
 ggsave("img/abundance/v04/3-fazisu-becsles.png", dpi = 300,
+       width = 10, height = 6)
+
+joined %>%
+  ggplot(aes(x = estimation, y = richness)) +
+  geom_point() +
+  geom_text(
+    aes(label = sprintf('%d', ceiling(richness))), 
+    angle = 90,
+    nudge_x = 0.2,
+    nudge_y = 40,
+    size = 3,
+    # color = 'grey',
+    alpha = 0.7,
+  ) +
+  geom_text(
+    aes(label = sprintf('%s%%', round(percent))), 
+    angle = 90,
+    nudge_x = 0.45,
+    nudge_y = 40,
+    size = 3,
+    color = '#999999',
+    # alpha = 0.7,
+  ) +
+  geom_text(data = overview1, mapping = aes(label = S, y = S+30, x = 3)) +
+  geom_text(
+    data = overview1, 
+    mapping = aes(
+      label = sprintf('%d (h=%d)',
+                      S + hipothetical,
+                      hipothetical),
+      y = S + hipothetical + 30, 
+      x = 3
+    ),
+    color = '#666666'
+  ) +
+  geom_segment(
+    aes(x = estimation, y = min, xend = estimation, yend = max),
+    alpha = 0.4,
+  ) +
+  geom_hline(data = overview1, mapping = aes(yintercept = S)) +
+  geom_hline(
+    data = overview1,
+    mapping = aes(yintercept = S + hipothetical),
+    color = '#666666'
+  ) +
+  facet_wrap(~data) +
+  ylim(0, max(estimation1$max) + 10) +
+  theme_bw() +
+  theme(
+    axis.text.x = element_text(angle = 60, vjust = 1, hjust=1),
+  ) +
+  labs(
+    # title = 'A nyomtatványokról szóló ismeretek és a becslések változása',
+    x = 'Estimation methods',
+    y = 'Number of prints',
+  )
+
+ggsave("img/abundance/v04/3-fazisu-becsles.en.png", dpi = 300,
        width = 10, height = 6)
 
 write_csv(joined, 'data_raw/v04/3-fazisu-becsles.csv')

@@ -10,20 +10,19 @@ from copia.plot import abundance_barplot
 from copia.plot import abundance_histogram
 from copia.plot import minsample_diagnostic_plot
 from copia.plot import accumulation_curve
-from copia.plot import density_plot
-from copia.plot import abundance_barplot
-from copia.plot import multi_kde_plot
-from copia.plot import survival_errorbar
+# from copia.plot import density_plot
+# from copia.plot import multi_kde_plot
+# from copia.plot import survival_errorbar
 from copia.plot import evenness_plot
-from copia.stats import species_accumulation
-from copia.stats import survival_ratio
+# from copia.stats import species_accumulation
+# from copia.stats import survival_ratio
 from copia.estimators import *
 from copia.estimators import diversity
 from copia.estimators import diversity
 from copia.estimators import diversity
 from copia.estimators import diversity
-from copia.diversity import evenness
-from copia.diversity import hill_numbers
+# from copia.diversity import evenness
+# from copia.diversity import hill_numbers
 
 def Hill_Shannon(list_ids):
     series_ids=pd.Series(list_ids)
@@ -51,6 +50,17 @@ def Hill_Simpson(list_ids):
     df_counts['proportion'] = df_counts['occurrences'] / total_records 
     df_counts['square']= df_counts['proportion']* df_counts['proportion']
     return 1/(df_counts['square'].sum())
+
+def basic_stats(x):
+    assert isinstance(x, np.ndarray)
+    return {
+        "f1": np.count_nonzero(x == 1),
+        "f2": np.count_nonzero(x == 2),
+        "f3": np.count_nonzero(x == 3),
+        "f4": np.count_nonzero(x == 4),
+        "S": (x > 0).sum(),
+        "n": x.sum(),
+    }
 
 parser = argparse.ArgumentParser(description="Estimate lost books")
 parser.add_argument("file", help="A CSV file to read.")
@@ -85,7 +95,7 @@ report = open(report_file, "w")
 abundance = np.array(df["count"])
 
 report.write("[basic_stats] " + datetime.now().strftime("%H:%M:%S") + "\n")
-stat = stats.basic_stats(abundance)
+stat = basic_stats(abundance)
 stat_str = str(stat)
 
 with open("{0}/overview.csv".format(output_dir), "w") as overview:
@@ -103,7 +113,8 @@ with open("{0}/overview.csv".format(output_dir), "w") as overview:
 
 # abundance_barplot(abundance)
 report.write("[abundance_barplot] " + datetime.now().strftime("%H:%M:%S") + "\n")
-abundance_barplot(abundance, trendline=True)
+# abundance_barplot(abundance, trendline=True)
+abundance_barplot(abundance)
 plt.savefig("{0}/abundance_cnt.png".format(output_dir), format="png")
 
 

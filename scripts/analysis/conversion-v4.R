@@ -288,19 +288,19 @@ df <- read_tsv(tsv_file)
 names(df)
 nrow(df)
 
-df <- read_tsv(tsv_file,
+df_tsv <- read_tsv(tsv_file,
                skip = 1,
                col_names = names,
                col_types = types)
-ids1 <- df %>% select(id) %>% unlist(use.names = FALSE)
+ids1 <- df_tsv %>% select(id) %>% unlist(use.names = FALSE)
 
 # names(df)
 library(readxl)
-df2 <- read_excel("~/Documents/mi-veszett-el/v04/RMNYStat.xlsx",
+df_excel <- read_excel("~/Documents/mi-veszett-el/v04/RMNYStat.xlsx",
                   col_types = excel_types)
-names(df2) <- names
-df <- df2
-ids2 <- df2 %>% select(`RMNYStat-ID`) %>% unlist(use.names = FALSE)
+names(df_excel) <- names
+df <- df_excel
+ids2 <- df_excel %>% select(id) %>% unlist(use.names = FALSE)
 
 ids1
 ids2
@@ -309,8 +309,9 @@ setdiff(ids2, ids1)
 nrow(df)
 df %>% select(id) %>% print(n = 10)
 
+df %>% count(hypothetic)
 
-df <- df %>% 
+df_fixed <- df %>% 
   select(-c(
     group1, group2, group3, group4, group5, group6,
     empty1, empty2, empty3,
@@ -320,8 +321,8 @@ df <- df %>%
     ivszam = as.numeric(str_replace(ivszam, ",", ".")),
     x_ivkiadvany_min = as.numeric(str_replace(x_ivkiadvany_min, ",", ".")),
     x_ivkiadvany_max = as.numeric(str_replace(x_ivkiadvany_max, ",", ".")),
-    external_data = ifelse(is.na(external_data), FALSE, ifelse(external_data == "1", TRUE, FALSE)),
-    hypothetic = ifelse(is.na(hypothetic), FALSE, ifelse(hypothetic == "x", TRUE, FALSE)),
+    external_data = ifelse(is.na(external_data), FALSE, ifelse(external_data == "1.0", TRUE, FALSE)),
+    hypothetic = ifelse(is.na(hypothetic), FALSE, ifelse(hypothetic == "1.0", TRUE, FALSE)),
     x_nyelvi_hungarikum = ifelse(is.na(x_nyelvi_hungarikum), FALSE, ifelse(x_nyelvi_hungarikum == "x", TRUE, FALSE)),
     x_teruleti_hungarikum = ifelse(is.na(x_teruleti_hungarikum), FALSE, ifelse(x_teruleti_hungarikum == "x", TRUE, FALSE)),
     x_szemelyi_hungarikum = ifelse(is.na(x_szemelyi_hungarikum), FALSE, ifelse(x_szemelyi_hungarikum == "x", TRUE, FALSE)),
@@ -348,8 +349,11 @@ df <- df %>%
 # df$x_s2_peldanyadatok[!is.na(df$x_s2_peldanyadatok)]
 # view(df %>% filter(grepl('^RMNY', id)))
 
-write_tsv(df, 'data_raw/rmny-v04.tsv', na = "")
-write_tsv(df, 'shiny/rmny/data/rmny-v04.tsv', na = "")
+df_fixed %>% count(hypothetic)
+df_fixed %>% count(external_data)
 
-write_rds(df, 'data_raw/rmny-v04.rds')
-write_rds(df, 'shiny/rmny/data/rmny-v04.rds')
+write_tsv(df_fixed, 'data_raw/rmny-v04.tsv', na = "")
+write_tsv(df_fixed, 'shiny/rmny/data/rmny-v04.tsv', na = "")
+
+write_rds(df_fixed, 'data_raw/rmny-v04.rds')
+write_rds(df_fixed, 'shiny/rmny/data/rmny-v04.rds')

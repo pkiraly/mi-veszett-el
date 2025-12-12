@@ -186,6 +186,44 @@ overviews %>%
 ggsave("img/abundance/v04/simulation-graph-bw.png", 
        dpi = 300, width = 7, height = 6)
 
+overviews_en <- overviews
+levels(overviews_en$method) <- c("basis", "a", "b", "c", "d")
+overviews_en$method
+
+richness_en <- richness
+levels(richness_en$method) <- c("basis", "a", "b", "c", "d")
+richness_en$method
+
+overviews_en %>% 
+  mutate(color = ifelse(method == 'basis', "linen", "white")) %>% 
+  ggplot(aes(x = x, y = value)) + 
+  geom_rect(
+    aes(fill = color), 
+    xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = Inf, alpha = 0.1) +
+  theme_bw() +
+  geom_point() +
+  geom_text(data = richness_en, mapping = aes(label = ceiling(richness)), x = 4, y = 380, hjust = 1) +
+  geom_line() +
+  stat_smooth(method = "lm", col = 'grey', se = FALSE) +
+  ylim(0, 400) +
+  facet_grid(data ~ method) +
+  labs(
+    # title = 'RMNY I. valós és szimulált halmazok példányszám-eloszlásai',
+    x = 'number of surviving copies',
+    y = 'number of prints',
+    fill = NULL,
+  ) +
+  guides(fill="none") +
+  scale_color_manual(values = NULL, label = NULL) +
+  scale_fill_manual(
+    values = c("linen" = "#cccccc", "white" = "white"),
+    labels = NULL)
+
+ggsave("img/abundance/v04/simulation-graph-bw.en.png", 
+       dpi = 300, width = 7, height = 6)
+
+#'---
+
 models <- overviews %>% 
   group_by(data, method) %>% 
   do(model = lm(x ~ value, data = .)) %>% 
@@ -197,14 +235,6 @@ models <- overviews %>%
   )
 
 models
-
-
-
-estimation
-overview
-
-overview3
-
 estimation3 %>% print(n = Inf)
 
 estimation3 %>% 

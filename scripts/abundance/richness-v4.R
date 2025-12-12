@@ -3,12 +3,15 @@ library(tidyverse)
 overview <- read_csv('scripts/abundance/outputs4/abundance_full/overview.csv')
 estimation <- read_csv('scripts/abundance/outputs4/abundance_full/estimation.csv')
 
+overview <- read_csv('scripts/abundance/outputs4_v2/v4abundance_full/overview.csv')
+estimation <- read_csv('scripts/abundance/outputs4_v2/v4abundance_full/estimation.csv')
+
 overview
 estimation$estimation
 
 # 
 existing <- overview$S[1]
-hypothetic <- 735
+hypothetic <- 884 # 735
 total <- existing + hypothetic
 color <- 'black'
 
@@ -51,4 +54,35 @@ estimation %>%
   scale_y_continuous(limits = c(0,max(estimation$max) * 1.1))
 
 ggsave('img/abundance/v04/richness.png', dpi=300, width = 6, height = 3)
+
+# str(estimation$estimation)
+
+estimation %>% 
+  mutate(
+    estimation = factor(estimation, levels = c("chao1", "ichao1", "ace", "jackknife", "egghe_proot")),
+    order = as.integer(estimation)
+  ) %>% 
+  ggplot(aes(x = estimation)) +
+  geom_text(aes(x = estimation, y = max + 250, label = round(richness))) +
+  geom_point(aes(y = richness), color = color) +
+  geom_segment(aes(x = estimation, y = min, xend = estimation, yend = max), color = color) +
+  geom_segment(aes(x = order - .05, y = min, xend = order + .05, yend = min), color = color) +
+  geom_segment(aes(x = order - .05, y = max, xend = order + .05, yend = max), color = color) +
+  geom_hline(yintercept = existing) +
+  annotate("text", x = 3, y = existing * 0.92,
+           label = sprintf("surviving prints (%d)", existing)) +
+  geom_hline(yintercept = total, color = '#666666') +
+  annotate("text", x = 3, y = total * 0.92,
+           label = sprintf("surviving and hipothetical prints (%d)", total),
+           color = '#666666') +
+  theme_bw() +
+  labs(
+    # title = 'A területi hungarikumok becsült minimális teljessége',
+    x = 'Estimation method',
+    y = 'Number of prints'
+  ) +
+  # scale_x_continuous(labels = estimation$estimation) +
+  scale_y_continuous(limits = c(0,max(estimation$max) * 1.1))
+
+ggsave('img/abundance/v04/richness.en.png', dpi=300, width = 6, height = 3)
 

@@ -1,3 +1,5 @@
+#' Creates diversity-correlation.png
+#' 
 library(tidyverse)
 
 base_dir <- 'scripts/abundance/outputs4'
@@ -66,5 +68,32 @@ all %>%
     'cor2' = 'Hill-Simpson'
   ))
 ggsave("img/abundance/v04/diversity-correlation.png", dpi = 300,
+       width = 7, height = 3)
+
+all %>% 
+  group_by(estimation) %>% 
+  summarise(
+    cor0 = cor(richness, S),
+    cor1 = cor(richness, Hill_Shannon),
+    cor2 = cor(richness, Hill_Simpson)
+  ) %>%
+  pivot_longer(cor0:cor2) %>% 
+  mutate(
+    estimation = factor(estimation, levels = c('chao1', 'ichao1', 'ace', 'jackknife', 'egghe_proot'))) %>% 
+  ggplot(aes(x = estimation, y = value, shape = name)) +
+  geom_point(size = 3) +
+  theme_bw() +
+  ylim(-1, 1) +
+  labs(
+    x = 'Estimation method',
+    y = 'Correlation',
+    shape = 'diversity index'
+  ) +
+  scale_shape_discrete(labels = c(
+    'cor0' = 'richness',
+    'cor1' = 'Hill-Shannon',
+    'cor2' = 'Hill-Simpson'
+  ))
+ggsave("img/abundance/v04/diversity-correlation.en.png", dpi = 300,
        width = 7, height = 3)
 
